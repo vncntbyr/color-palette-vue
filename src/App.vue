@@ -1,47 +1,86 @@
 <script setup lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
+import { ref } from 'vue'
+import InputSlider from './components/InputSlider.vue'
+import ExampleCard from './components/ExampleCard.vue'
+import GradedCell from './components/GradedCell.vue'
+import type { ColorGrade, CustomColor } from './types'
+import { getColor, getColorRanges, getKeys } from './utils'
+
+const hue = ref<number>(0)
+
+const colorGrades: ColorGrade[] = ['100', '200', '300', '400', '500', '600', '700', '800', '900']
+// TODO: this does not seem to get recalculated when hue changes
+const colors: Record<ColorGrade, CustomColor> = getColor(colorGrades, hue.value)
+const colorRanges = getColorRanges(colors)
+const colorRangeKeys = getKeys(colorRanges)
+const colorKeys = getKeys(colors)
+
+function onRangeChanged(e: Event) {
+  hue.value = parseInt((e.target as HTMLInputElement).value)
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-    </div>
-  </header>
-
   <main>
-    <TheWelcome />
+    <div id="leftSide">
+      <InputSlider :hue :on-range-changed="onRangeChanged" />
+      <div id="examples">
+        <ExampleCard
+          v-for="variant of colorRangeKeys"
+          :key="variant"
+          :text-color="colorRanges[variant].textColor"
+          :background-color="colorRanges[variant].backgroundColor"
+          :cta-background-color="colorRanges[variant].ctaBackgroundColor"
+          :cta-text-color="colorRanges[variant].ctaTextColor"
+        />
+      </div>
+    </div>
+    <div id="rightSide">
+      <div id="colorGrades">
+        <GradedCell
+          v-for="grade of colorKeys"
+          :key="grade"
+          :grade="grade"
+          :l-axis="colors[grade].lAxis"
+          :chroma="colors[grade].chroma"
+          :hue="colors[grade].hue"
+        />
+      </div>
+    </div>
   </main>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
+main {
+  background-color: white;
+  color: black;
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  height: 100vh;
+  padding: 2rem;
 }
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+#leftSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 50%;
+  gap: 1rem;
 }
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
+#examples {
+  display: flex;
+  gap: 1.5rem;
+  flex-direction: column;
+}
+#rightSide {
+  display: flex;
+  width: 50%;
+}
+#colorGrades {
+  display: flex;
+  flex-direction: column;
+  padding: 0 1rem;
+  align-items: center;
+  flex: 1;
 }
 </style>
